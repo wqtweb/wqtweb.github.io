@@ -1,0 +1,70 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.8.0"><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> js梳理 · 温其堂</title><meta name="description" content="js梳理 - wenqitang"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="search" type="application/opensearchdescription+xml" href="http://yoursite.com/atom.xml" title="温其堂"></head><body><div class="wrap"><header><a href="/" class="logo-link"><img src="/favicon.png" alt="logo"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="/archives/" target="_self" class="nav-list-link">ARCHIVE</a></li></ul></header><main class="container"><div class="post"><article class="post-block"><h1 class="post-title">js梳理</h1><div class="post-info">Nov 27, 2018</div><div class="post-content"><h1 id="梳理"><a href="#梳理" class="headerlink" title="梳理"></a>梳理</h1><h5 id="1、作用域"><a href="#1、作用域" class="headerlink" title="1、作用域"></a>1、作用域</h5><h5 id="2、词法作用域和动态作用域"><a href="#2、词法作用域和动态作用域" class="headerlink" title="2、词法作用域和动态作用域"></a>2、词法作用域和动态作用域</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">function foo() &#123; console.log(a) &#125;</span><br><span class="line">function bar() &#123; </span><br><span class="line">    var a = 3;</span><br><span class="line">    foo()</span><br><span class="line">&#125;</span><br><span class="line">var a = 2;</span><br><span class="line">bar();  // 2 (不是3)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>词法作用域让foo()中的a通过RHS引用到了全局作用域中的a，因此会输出2</li>
+<li>动态作用域则不关心函数和作用域是如何声明以及在何处声明的，只关心它们从何处调用。就是说作用域是基于调用栈，而不是代码中的作用域嵌套</li>
+<li>总结：js并不具有动态作用域，它只有词法作用域。但是this的机制某些程度上很像动态作用域</li>
+</ul>
+<hr>
+<h5 id="3、this的指向的理解误区"><a href="#3、this的指向的理解误区" class="headerlink" title="3、this的指向的理解误区"></a>3、this的指向的理解误区</h5><ol>
+<li>人们习惯把this理解成指向函数本身</li>
+<li>还有一种是指向函数作用域</li>
+</ol>
+<ul>
+<li>我们要记住的是this是在运行时绑定的，并不是编写时。它的上下文取决函数调用时的各种条件。this的绑定与函数的声明位置没有任何关系，只取决于函数的调用方式。</li>
+</ul>
+<hr>
+<h5 id="4、判断this"><a href="#4、判断this" class="headerlink" title="4、判断this"></a>4、判断this</h5><ol>
+<li><p>函数是否在new函数中绑定（new绑定），如果是this绑定的是新创建的对象</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">var bar = new foo();</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>函数是否通过call，apply（显式绑定），如果是this绑定的是指定的对象</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">var bar = foo.call(bar2);</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>3、函数是否在某个上下文对象中调用（隐式绑定），如果是this绑定的是那个上下文对象。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">var bar = obj1.foo();</span><br></pre></td></tr></table></figure></p>
+<p>4、如果都不是，使用的默认绑定。如果是严格模式下，就绑定到undefined，否则绑定到全局对象<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">var bar = foo()</span><br></pre></td></tr></table></figure></p>
+<p>5、ES6中的箭头函数，无法使用以上4条规则，而是根据外层（函数或者全局）作用域来决定this。（箭头函数的绑定无法被修改）</p>
+<ul>
+<li><p>总结：很多js使用者，并没有重视或者去理解this的机制，常常遇到一些无法理解的this指向现象，往往会利用词法作用域回到舒适区，进而代替了this机制</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">function foo () &#123;</span><br><span class="line">   var self = this;</span><br><span class="line">    setTimeout(function() &#123;</span><br><span class="line">        console.log(self.a)</span><br><span class="line">    &#125;, 100) </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果你经常编写this风格的代码，但是绝大部分会使用self=this或者箭头函数来否定this机制。那么应当</p>
+</li>
+</ul>
+<ol>
+<li>只使用词法作用域并完全抛弃错误this风格的代码</li>
+<li>完全采用this风格，在必要的时候使用bind，尽量避免使用self=this和箭头函数。</li>
+</ol>
+<h5 id="5、对象"><a href="#5、对象" class="headerlink" title="5、对象"></a>5、对象</h5><ol>
+<li>语法<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">// 对象文字语法</span><br><span class="line">var myobj = &#123;</span><br><span class="line">    key: value</span><br><span class="line">&#125;</span><br><span class="line">// 构造形式</span><br><span class="line">var myobj = new Object();</span><br><span class="line">myobj.key = value;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>2.类型</p>
+<blockquote>
+<p>对象是js的基础。在js中一共有6中主要类型（string, number, boolean, null, undefined, object）</p>
+</blockquote>
+<p>3.内置对象</p>
+<p>4.内容</p>
+<blockquote>
+<p>对象中，属性名永远是字符串</p>
+</blockquote>
+<p>5.可计算属性名</p>
+<p>6.属性与方法</p>
+<blockquote>
+<p>有人认为，函数并不是在定义时成为方法，而是在调用时根据是否具有上下文成为方法。<br>最保险的说法是，函数和方法在js中是可以互换的</p>
+</blockquote>
+<p>7.复制对象</p>
+<blockquote>
+<p>浅复制和深复制<br>ES6中定义了Object.assign()方法来实现浅复制</p>
+</blockquote>
+<p>8、属性描述符</p>
+<blockquote>
+<p>ES5开始，所有属性都具备了属性描述符</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">var myobject = &#123;</span><br><span class="line">    a: 2</span><br><span class="line">&#125;</span><br><span class="line">Object.getOwnPropertyDescriptor(myobject, &quot;a&quot;);</span><br><span class="line">&lt;!--&#123;--&gt;</span><br><span class="line">&lt;!--    value: 2, --&gt;</span><br><span class="line">&lt;!--    writable: true, // 可写--&gt;</span><br><span class="line">&lt;!--    enumerable: true, // 可枚举--&gt;</span><br><span class="line">&lt;!--    configurable: true, // 可配置--&gt;</span><br><span class="line">&lt;!--&#125;--&gt;</span><br></pre></td></tr></table></figure>
+<h5 id="6、原型"><a href="#6、原型" class="headerlink" title="6、原型"></a>6、原型</h5><ul>
+<li>对象中有一个特殊的内置属性[[prototype]]</li>
+<li>属性的设置与屏蔽</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1、如果该属性存在[[prototype]]上，并且没有标记只读，那么会发生屏蔽属性</span><br><span class="line">2、如果该属性存在[[prototype]]上，该属性被标记只读，那么修改无效，且在严格模式下会抛出异常</span><br><span class="line">3、如果在[[prototype]]链上层存在，并且他是一个setter，不会被屏蔽，也不会重新定义setter</span><br></pre></td></tr></table></figure>
+</div></article></div></main><footer><div class="paginator"><a href="/2018/06/10/网站集合/" class="next">下一篇</a></div><div class="copyright"><p>© 2015 - 2019 <a href="http://yoursite.com">wenqitang</a>, powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and <a href="https://github.com/pinggod/hexo-theme-apollo" target="_blank">hexo-theme-apollo</a>.</p></div></footer></div><script async src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML" integrity="sha384-crwIf/BuaWM9rM65iM+dWFldgQ1Un8jWZMuh3puxb8TOY9+linwLoI7ZHZT+aekW" crossorigin="anonymous"></script></body></html>
